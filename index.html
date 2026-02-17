@@ -21,11 +21,9 @@
             --radius-card: 25px; --radius-btn: 15px;
         }
 
-        /* ล็อกไม่ให้เลื่อนระดับ Browser */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; background-image: radial-gradient(circle at 10% 20%, rgb(239, 246, 255) 0%, rgb(229, 236, 249) 90%); }
         
-        /* Custom Scrollbar สำหรับจุดที่ต้องเลื่อนจริงๆ (เช่น Timeline) */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(90, 103, 216, 0.2); border-radius: 10px; }
@@ -33,14 +31,33 @@
 
         .tablet-screen { width: 100%; max-width: 1024px; height: 90vh; max-height: 768px; background: var(--bg-app); border-radius: 40px; overflow: hidden; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; position: relative; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
         
-        /* ปรับ Header ให้บางลงนิดหน่อย */
         header { padding: 25px 35px 15px 35px; display: flex; justify-content: space-between; align-items: center; background: transparent; z-index: 10; }
         .header-title { font-size: 24px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; }
+        
+        /* จัดกลุ่มนาฬิกาและปุ่ม Config */
+        .header-right { display: flex; align-items: center; gap: 15px; }
         .header-time { text-align: right; }
         .time-text { font-size: 22px; font-weight: 700; color: var(--text-brand); background: var(--grad-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .date-text { font-size: 13px; color: var(--text-gray); font-weight: 500; }
         
-        /* ล็อกไม่ให้ Screen เลื่อน (overflow: hidden) */
+        /* ปุ่ม Admin แบบซ่อนเนียนๆ */
+        .admin-header-btn {
+            font-size: 20px;
+            opacity: 0.2; /* จางมากๆ */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .admin-header-btn:hover {
+            opacity: 1; /* ชัดขึ้นเมื่อเอาเมาส์ชี้ */
+            background: rgba(90, 103, 216, 0.1);
+            transform: rotate(30deg); /* ลูกเล่นหมุนเฟืองนิดนึง */
+        }
+        
         .screen { display: none; flex: 1; padding: 10px 35px 35px 35px; animation: slideFade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden; }
         .screen.active { display: flex; flex-direction: column; }
         
@@ -69,8 +86,6 @@
         .timeline-container { display: flex; flex-direction: column; height: 100%; }
         .timeline-header { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;}
         .refresh-badge { font-size: 12px; font-weight: 500; color: var(--text-brand); background: rgba(90, 103, 216, 0.1); padding: 4px 10px; border-radius: 10px; }
-        
-        /* ยอมให้แค่กล่อง Timeline ที่เลื่อนแนวตั้งได้ */
         .timeline-list { flex: 1; overflow-y: auto; padding-right: 10px; }
         
         .timeline-item { background: var(--surface-glass); border-radius: 15px; padding: 15px 20px; margin-bottom: 12px; display: flex; flex-direction: column; border-left: 5px solid transparent; box-shadow: var(--shadow-soft); border: 1px solid rgba(255,255,255,0.5); transition: 0.2s;}
@@ -82,7 +97,6 @@
         .t-title { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 2px; }
         .t-org { font-size: 12px; color: var(--text-brand); font-weight: 500; }
 
-        /* ปรับ Form Panel ให้กระชับขึ้น */
         .form-panel { background: var(--surface-glass); backdrop-filter: blur(15px); padding: 35px 40px; border-radius: 30px; max-width: 550px; width: 100%; margin: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.8); }
         .form-panel h2 { color: var(--text-dark); font-size: 24px; margin-bottom: 5px; }
         .form-subtitle { color: var(--text-gray); margin-bottom: 20px; font-size: 14px; }
@@ -105,10 +119,6 @@
         .admin-menu-card:hover { border-color: var(--text-brand); box-shadow: var(--shadow-glow-brand); transform: translateY(-3px); background: #FFFFFF; }
         .admin-icon-svg { width: 40px; height: 40px; margin-bottom: 10px; }
 
-        .admin-link-container { text-align: center; margin-top: 25px; }
-        .admin-link { font-size: 12px; color: rgba(160, 174, 192, 0.6); text-decoration: none; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; }
-        .admin-link:hover { color: var(--text-brand); background: rgba(90, 103, 216, 0.05); }
-
         .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45, 55, 72, 0.4); display: none; justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(10px); }
         .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
         .modal-content { background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 30px; text-align: center; max-width: 400px; width: 90%; transform: scale(0.9); animation: popIn 0.3s forwards; box-shadow: 0 40px 80px rgba(0,0,0,0.2); }
@@ -129,9 +139,14 @@
 <div class="tablet-screen">
     <header>
         <div class="header-title" id="room-name">Boardroom A — Floor 2</div>
-        <div class="header-time">
-            <div class="time-text" id="clock">00:00</div>
-            <div class="date-text" id="date-text">Loading...</div>
+        <div class="header-right">
+            <div class="header-time">
+                <div class="time-text" id="clock">00:00</div>
+                <div class="date-text" id="date-text">Loading...</div>
+            </div>
+            <div class="admin-header-btn" onclick="nav('screen-admin-auth')" title="System Configuration">
+                ⚙️
+            </div>
         </div>
     </header>
 
@@ -146,9 +161,6 @@
                 <div class="action-group">
                     <button class="btn btn-glass" onclick="nav('screen-checkin')"><span>👤</span> Check-in</button>
                     <button class="btn btn-gradient-brand" onclick="nav('screen-walkin-auth')"><span>📅</span> Walk-in Booking</button>
-                </div>
-                <div class="admin-link-container">
-                    <span class="admin-link" onclick="nav('screen-admin-auth')"><span>⚙️</span> Config</span>
                 </div>
             </div>
 
@@ -280,12 +292,12 @@
             <div class="form-subtitle">Configure device mapping</div>
             
             <div class="input-group">
-                <label>Display Name</label>
+                <label>Room Name</label>
                 <input type="text" class="input-field" value="Boardroom A — Floor 2">
             </div>
             <div class="input-group">
-                <label>API Endpoint URL</label>
-                <input type="text" class="input-field" value="https://api.company.com/v1">
+                <label>Tablet Number</label>
+                <input type="text" class="input-field" value="TBLT-001">
             </div>
             
             <div style="display: flex; gap: 15px; margin-top: 25px;">
@@ -364,7 +376,7 @@
         { time: "09:00 - 10:30 AM", title: "Quarterly Review", org: "Executive Board", status: "past" },
         { time: "11:00 - 12:00 PM", title: "Project Alpha Sync", org: "Engineering Team", status: "future" },
         { time: "02:00 - 04:00 PM", title: "Vendor Meeting", org: "Procurement", status: "future" },
-        { time: "04:30 - 05:30 PM", title: "Design Standup", org: "UI/UX Team", status: "future" } // ใส่เพิ่มให้เห็นว่า Timeline มี Scrollbar ได้
+        { time: "04:30 - 05:30 PM", title: "Design Standup", org: "UI/UX Team", status: "future" }
     ];
     let usersDB = [
         { id: "1001", name: "Somchai (Admin)", role: "Admin", cardId: "RFID-A1B2", isActive: true },
