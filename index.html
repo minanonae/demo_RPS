@@ -1,1 +1,549 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Room Tablet - Modern Soft UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette อิงจาก Modern UI */
+            --bg-body: #e4e9f2; /* สีพื้นหลังนอกจอ */
+            --bg-app: #f4f7fe; /* สีพื้นหลังในจอ Tablet แนวพาสเทล */
+            --surface: #ffffff;
+            --text-dark: #2b3674;
+            --text-gray: #a3aed1;
+            
+            /* Gradients ตามสถานะ */
+            --grad-available: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); /* เขียวมิ้นต์สว่าง */
+            --grad-using: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); /* แดงอมส้ม */
+            --grad-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* ม่วงฟ้า */
+            
+            /* Shadows */
+            --shadow-soft: 0 18px 40px rgba(112, 144, 176, 0.12);
+            --shadow-colored: 0 15px 30px rgba(67, 233, 123, 0.3);
+        }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-body); 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+        }
+
+        /* Tablet Container */
+        .tablet-screen { 
+            width: 100%; max-width: 1024px; height: 90vh; max-height: 768px; 
+            background: var(--bg-app); border-radius: 40px; overflow: hidden; 
+            box-shadow: 0 30px 60px rgba(32, 40, 60, 0.15); 
+            display: flex; flex-direction: column; position: relative; 
+        }
+
+        /* Header (ลอยๆ ไม่มีขอบ) */
+        header { 
+            padding: 30px 40px 10px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 10; 
+        }
+        .header-title { font-size: 26px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; }
+        .header-time { text-align: right; }
+        .time-text { font-size: 24px; font-weight: 700; color: var(--primary); color: #4318FF; }
+        .date-text { font-size: 13px; color: var(--text-gray); font-weight: 500; }
+
+        /* Screens */
+        .screen { display: none; flex: 1; padding: 20px 40px 40px 40px; animation: slideFade 0.5s ease; overflow-y: auto; }
+        .screen.active { display: flex; flex-direction: column; }
+        
+        /* Layout */
+        .grid-layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; height: 100%; }
+        
+        /* Main Status Card (เหมือนกล่องอากาศสีน้ำเงินในภาพ) */
+        .status-card { 
+            border-radius: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            text-align: center; color: white; padding: 50px; transition: all 0.4s ease; 
+            box-shadow: var(--shadow-colored); position: relative; overflow: hidden;
+        }
+        .status-card::before {
+            content: ''; position: absolute; width: 300px; height: 300px; background: rgba(255,255,255,0.1); 
+            border-radius: 50%; top: -100px; right: -100px;
+        }
+        .status-card.available { background: var(--grad-available); box-shadow: 0 20px 40px rgba(67, 233, 123, 0.3); }
+        .status-card.using { background: var(--grad-using); box-shadow: 0 20px 40px rgba(255, 8, 68, 0.3); }
+        
+        .status-title { font-size: 64px; font-weight: 700; line-height: 1; margin-bottom: 10px; z-index: 1;}
+        .status-subtitle { font-size: 20px; font-weight: 400; opacity: 0.9; z-index: 1;}
+
+        /* Buttons */
+        .action-group { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        .btn { 
+            padding: 20px 24px; border: none; border-radius: 24px; font-size: 16px; font-weight: 600; 
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; justify-content: center; align-items: center; gap: 10px; 
+            box-shadow: var(--shadow-soft);
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.08); }
+        .btn:active { transform: translateY(0); }
+        
+        .btn-primary { background: var(--surface); color: var(--text-dark); } /* สีขาวดูพรีเมียม */
+        .btn-gradient { background: var(--grad-primary); color: white; box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: transparent; color: var(--text-gray); box-shadow: none; border: 2px solid #e0e5f2; }
+        
+        /* Timeline (คล้ายกล่องกราฟและ Sunrise ในภาพ) */
+        .timeline-container { 
+            background: var(--surface); border-radius: 30px; padding: 35px; box-shadow: var(--shadow-soft); 
+            display: flex; flex-direction: column;
+        }
+        .timeline-header { font-size: 20px; font-weight: 700; color: var(--text-dark); margin-bottom: 25px; display: flex; justify-content: space-between;}
+        .timeline-header span { font-size: 14px; font-weight: 500; color: var(--text-gray); cursor: pointer; }
+        
+        .timeline-list { flex: 1; overflow-y: auto; padding-right: 10px;}
+        .timeline-item { 
+            background: var(--bg-app); border-radius: 20px; padding: 20px; margin-bottom: 15px;
+            display: flex; flex-direction: column; border-left: 5px solid #4318FF; transition: 0.2s;
+        }
+        .timeline-item:hover { transform: translateX(5px); }
+        .t-time { font-size: 13px; color: var(--text-gray); font-weight: 600; margin-bottom: 5px; }
+        .t-title { font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .t-org { font-size: 13px; color: #4318FF; font-weight: 500; }
+
+        /* Forms Panel */
+        .form-panel { 
+            background: var(--surface); padding: 50px; border-radius: 40px; max-width: 600px; 
+            width: 100%; margin: auto; text-align: center; box-shadow: var(--shadow-soft); 
+        }
+        .form-panel h2 { color: var(--text-dark); font-size: 28px; margin-bottom: 10px; }
+        
+        .input-field { 
+            width: 100%; padding: 20px 24px; margin: 10px 0 20px 0; border: 2px solid #e0e5f2; 
+            background: var(--bg-app); border-radius: 20px; font-size: 16px; outline: none; transition: 0.3s;
+            color: var(--text-dark); font-weight: 500;
+        }
+        .input-field:focus { border-color: #4318FF; background: var(--surface); box-shadow: 0 10px 20px rgba(67, 24, 255, 0.1); }
+        .input-field::placeholder { color: #a3aed1; font-weight: 400; }
+        label { font-weight: 600; font-size: 14px; color: var(--text-dark); text-align: left; display: block; margin-top: 10px; padding-left: 10px;}
+        
+        /* NFC Reader Mockup (สวยงาม ทันสมัย) */
+        .nfc-reader {
+            background: linear-gradient(180deg, #ffffff 0%, #f4f7fe 100%);
+            padding: 40px; border-radius: 30px; margin: 20px 0 30px 0; 
+            border: 2px dashed #d4dcf1; display: flex; flex-direction: column; align-items: center;
+        }
+        .nfc-icon {
+            font-size: 50px; width: 100px; height: 100px; background: var(--grad-primary); color: white;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4); cursor: pointer; margin-bottom: 20px;
+        }
+        
+        /* Modals (Glassmorphism) */
+        .modal-overlay { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(43, 54, 116, 0.4); display: none; justify-content: center; align-items: center; z-index: 50; 
+            backdrop-filter: blur(8px); /* เบลอพื้นหลัง */
+        }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+        .modal-content { 
+            background: var(--surface); padding: 50px; border-radius: 40px; text-align: center; 
+            max-width: 450px; width: 90%; transform: scale(0.9); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+            box-shadow: 0 40px 80px rgba(0,0,0,0.2);
+        }
+        .modal-icon { font-size: 70px; margin-bottom: 20px; line-height: 1; }
+        .modal-content h2 { color: var(--text-dark); font-size: 26px; }
+        .modal-content p { color: var(--text-gray); margin-bottom: 30px; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { to { transform: scale(1); } }
+        
+        .pulse { animation: pulseAnim 2s infinite; }
+        @keyframes pulseAnim { 
+            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.6); } 
+            70% { box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); } 
+        }
+
+        /* Divider with text */
+        .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--text-gray); font-size: 14px; font-weight: 600;}
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 2px solid #e0e5f2; }
+        .divider::before { margin-right: 15px; } .divider::after { margin-left: 15px; }
+        
+        /* Admin Dashboard Cards */
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .admin-card { 
+            background: var(--bg-app); border-radius: 30px; padding: 30px 20px; cursor: pointer; transition: 0.3s;
+            border: 2px solid transparent; display: flex; flex-direction: column; align-items: center;
+        }
+        .admin-card:hover { border-color: #667eea; background: #eef2fa; transform: translateY(-5px); }
+        .admin-icon { font-size: 40px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="tablet-screen">
+    <header>
+        <div class="header-title" id="room-name">Boardroom A</div>
+        <div class="header-time">
+            <div class="time-text" id="clock">00:00 AM</div>
+            <div class="date-text" id="date-text">Wednesday, 14 April</div>
+        </div>
+    </header>
+
+    <div id="screen-status" class="screen active">
+        <div class="grid-layout">
+            <div style="display: flex; flex-direction: column;">
+                <div id="room-status-box" class="status-card available" style="flex: 1;">
+                    <div style="font-size: 80px; margin-bottom: -10px; z-index: 1;">✨</div>
+                    <div class="status-title" id="status-title">29°</div>
+                    <div class="status-subtitle" id="status-desc">Available for Walk-in</div>
+                </div>
+                
+                <div class="action-group">
+                    <button class="btn btn-primary" onclick="nav('screen-checkin')">
+                        <span style="font-size: 20px;">👤</span> Check-in
+                    </button>
+                    <button class="btn btn-gradient" onclick="nav('screen-walkin-auth')">
+                        <span style="font-size: 20px;">📅</span> Walk-in Booking
+                    </button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 25px;">
+                    <span style="color: var(--text-gray); font-size: 13px; cursor: pointer; font-weight: 500;" onclick="nav('screen-admin-auth')">
+                        ⚙️ Admin System Setup
+                    </span>
+                </div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-header">
+                    Today's Schedule <span id="refresh-timer">↻ 30s</span>
+                </div>
+                <div class="timeline-list" id="timeline-list">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-checkin" class="screen">
+        <div class="form-panel">
+            <h2>Meeting Check-in</h2>
+            <p style="color: var(--text-gray); margin-bottom: 20px;">Confirm your attendance.</p>
+            
+            <div class="nfc-reader">
+                <div class="nfc-icon pulse" onclick="simulateCheckinNFC()">💳</div>
+                <h3 style="color: var(--text-dark);">Tap Employee Card</h3>
+                <p style="font-size: 13px; color: var(--text-gray);">Place card on the reader</p>
+            </div>
+
+            <div class="divider">OR ENTER PIN</div>
+
+            <input type="password" id="checkin-pin-input" class="input-field" placeholder="4-digit PIN (e.g. 1234)" maxlength="4" style="text-align: center; font-size: 24px; letter-spacing: 10px;">
+            
+            <div style="display: flex; gap: 15px; margin-top: 10px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="nav('screen-status')">Cancel</button>
+                <button class="btn btn-gradient" style="flex: 1;" onclick="verifyCheckinPIN()">Verify</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-walkin-auth" class="screen">
+        <div class="form-panel">
+            <h2>Walk-in Booking</h2>
+            <p style="color: #ff0844; font-weight: 600; margin-bottom: 20px;">* Employee Card Required</p>
+            
+            <div class="nfc-reader" style="padding: 60px 40px;">
+                <div class="nfc-icon pulse" style="width: 120px; height: 120px; font-size: 60px;" onclick="simulateWalkinNFC()">💳</div>
+                <h3 style="color: var(--text-dark); font-size: 22px;">Tap Employee Card</h3>
+                <p style="font-size: 14px; color: var(--text-gray);">to start your booking process</p>
+            </div>
+            
+            <button class="btn btn-secondary" style="width: 100%;" onclick="nav('screen-status')">Cancel</button>
+        </div>
+    </div>
+
+    <div id="screen-walkin-form" class="screen">
+        <div class="form-panel">
+            <h2>Meeting Details</h2>
+            <div style="background: #eef2fa; color: #4318FF; padding: 15px; border-radius: 20px; margin: 20px 0; font-size: 14px; font-weight: 600;">
+                ✓ Verified as: <span id="verified-user-name" style="color: var(--text-dark);">John Doe (Emp: 9901)</span>
+            </div>
+            
+            <label>Meeting Subject</label>
+            <input type="text" id="walkin-subject" class="input-field" placeholder="e.g. Quick Sync, Client Call">
+            
+            <label>Duration</label>
+            <select id="walkin-duration" class="input-field">
+                <option value="15">15 Minutes</option>
+                <option value="30" selected>30 Minutes</option>
+                <option value="60">1 Hour</option>
+                <option value="120">2 Hours</option>
+            </select>
+
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="nav('screen-status')">Cancel</button>
+                <button class="btn btn-gradient" style="flex: 1;" onclick="submitWalkin()">Reserve Room</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-admin-auth" class="screen">
+        <div class="form-panel">
+            <h2>Admin Access</h2>
+            <p style="color: var(--text-gray); margin-bottom: 20px;">System configuration requires authentication.</p>
+            
+            <div class="nfc-reader">
+                <div class="nfc-icon pulse" style="background: linear-gradient(135deg, #111827, #374151);" onclick="simulateAdminNFC()">🔑</div>
+                <h3 style="color: var(--text-dark);">Tap Admin Card</h3>
+            </div>
+
+            <div class="divider">OR</div>
+            <input type="password" id="admin-pin-input" class="input-field" placeholder="Admin PIN (9999)" maxlength="4" style="text-align: center; font-size: 20px; letter-spacing: 10px;">
+            
+            <div style="display: flex; gap: 15px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="nav('screen-status')">Back</button>
+                <button class="btn btn-primary" style="background: var(--text-dark); color: white;" style="flex: 1;" onclick="verifyAdminPIN()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-admin-dashboard" class="screen">
+        <div class="form-panel" style="max-width: 700px;">
+            <h2>Admin Dashboard</h2>
+            <p style="color: var(--text-gray); margin-bottom: 30px;">Manage device and user settings</p>
+            
+            <div class="admin-grid">
+                <div class="admin-card" onclick="nav('screen-admin-room')">
+                    <div class="admin-icon">🏢</div>
+                    <h3 style="color: var(--text-dark); font-size: 18px;">Room Setup</h3>
+                    <p style="font-size: 13px; color: var(--text-gray); margin-top: 5px;">Map Tablet & API URL</p>
+                </div>
+                <div class="admin-card" onclick="nav('screen-admin-user')">
+                    <div class="admin-icon">👥</div>
+                    <h3 style="color: var(--text-dark); font-size: 18px;">User Access</h3>
+                    <p style="font-size: 13px; color: var(--text-gray); margin-top: 5px;">NFC Cards & Roles</p>
+                </div>
+            </div>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="nav('screen-status')">Logout System</button>
+        </div>
+    </div>
+
+    <div id="screen-admin-room" class="screen">
+        <div class="form-panel">
+            <h2>Room Setup</h2>
+            <div style="text-align: left; margin-top: 30px;">
+                <label>Room Name (Display)</label>
+                <input type="text" class="input-field" value="Boardroom A">
+                <label>API Endpoint Base URL</label>
+                <input type="text" class="input-field" value="https://api.corp.com/v1/rooms">
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="nav('screen-admin-dashboard')">Back</button>
+                <button class="btn btn-gradient" style="flex: 1;" onclick="showModal('success', 'Saved', 'Configuration updated.', () => nav('screen-admin-dashboard'))">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-admin-user" class="screen">
+        <div class="form-panel" style="max-width: 650px;">
+            <h2>User Management</h2>
+            <div style="display: flex; gap: 10px; margin: 20px 0;">
+                <input type="text" id="search-emp-id" class="input-field" placeholder="Emp ID (e.g. 1001)" style="margin: 0; flex: 1;">
+                <button class="btn btn-primary" style="background: var(--text-dark); color: white;" onclick="searchEmployee()">Search</button>
+            </div>
+
+            <div id="user-edit-form" style="display: none; text-align: left; background: var(--bg-app); padding: 30px; border-radius: 24px; border: 2px solid #e0e5f2;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 id="edit-emp-name" style="color: var(--text-dark); font-size: 20px;">John Doe</h3>
+                    <span id="edit-emp-status-badge" style="background: #43e97b; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 700;">Active</span>
+                </div>
+
+                <label>Role</label>
+                <select id="edit-emp-role" class="input-field">
+                    <option value="Admin">Admin</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Officer">Officer</option>
+                </select>
+
+                <label>NFC Card ID</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="edit-emp-card" class="input-field" readonly style="background: #e2e8f0; margin: 0;" placeholder="No Card">
+                    <button class="btn btn-secondary" style="border-radius: 20px; white-space: nowrap;" onclick="simulateAssignNewCard()">Tap New</button>
+                </div>
+
+                <label>Status</label>
+                <select id="edit-emp-status" class="input-field">
+                    <option value="true">Active Account</option>
+                    <option value="false">Suspended</option>
+                </select>
+
+                <button class="btn btn-gradient" style="width: 100%; margin-top: 20px;" onclick="saveUserPermission()">Save Settings</button>
+            </div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 20px;" onclick="closeUserForm()">Back</button>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">✅</div>
+            <h2 id="modal-title">Success</h2>
+            <p id="modal-message">Action completed.</p>
+            <button class="btn btn-gradient" style="width: 100%;" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- State & Mock Data ---
+    let isAvailable = true;
+    let refreshCountdown = 30;
+    let currentUser = ""; 
+
+    const meetings = [
+        { time: "09:00 - 10:30 AM", title: "Product Sync", org: "Design Team", status: "past" },
+        { time: "11:00 - 12:00 PM", title: "Client Presentation", org: "Sales Dept", status: "future" },
+        { time: "02:00 - 04:00 PM", title: "Q3 Planning", org: "Board Members", status: "future" }
+    ];
+
+    let usersDB = [
+        { id: "1001", name: "Somchai (Admin)", role: "Admin", cardId: "RFID-A1B2", isActive: true },
+        { id: "1002", name: "Alice (Manager)", role: "Manager", cardId: "RFID-C3D4", isActive: true }
+    ];
+    let currentEditingUserId = null;
+
+    // --- Date Formatting (ให้เหมือนในภาพ) ---
+    function updateDateTime() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        document.getElementById('date-text').innerText = now.toLocaleDateString('en-US', options);
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // --- Core UI Functions ---
+    function nav(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        ['checkin-pin-input', 'admin-pin-input', 'walkin-subject'].forEach(id => { 
+            if(document.getElementById(id)) document.getElementById(id).value = ''; 
+        });
+    }
+
+    function showModal(type, title, message, callback = null) {
+        const modal = document.getElementById('custom-modal');
+        document.getElementById('modal-icon').innerText = type === 'success' ? '✨' : type === 'error' ? '⚠️' : 'ℹ️';
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-message').innerText = message;
+        modal.classList.add('active');
+        window.modalCallback = callback;
+    }
+
+    function closeModal() {
+        document.getElementById('custom-modal').classList.remove('active');
+        if(window.modalCallback) { window.modalCallback(); window.modalCallback = null; }
+    }
+
+    function renderTimeline() {
+        const html = meetings.map(m => `
+            <div class="timeline-item" style="opacity: ${m.status === 'past' ? '0.5' : '1'}; border-left-color: ${m.status === 'past' ? '#a3aed1' : '#4318FF'}">
+                <div class="t-time">${m.time}</div>
+                <div class="t-title">${m.title}</div>
+                <div class="t-org">${m.org}</div>
+            </div>
+        `).join('');
+        document.getElementById('timeline-list').innerHTML = html;
+        
+        // Setup initial room status display
+        updateRoomStatusUI();
+    }
+
+    function updateRoomStatusUI(subject = null, org = null) {
+        const card = document.getElementById('room-status-box');
+        const title = document.getElementById('status-title');
+        const desc = document.getElementById('status-desc');
+        
+        if(isAvailable) {
+            card.className = 'status-card available';
+            card.innerHTML = `<div style="font-size: 80px; margin-bottom: -10px; z-index: 1;">✨</div>
+                              <div class="status-title">Available</div>
+                              <div class="status-subtitle">Ready for use</div>`;
+        } else {
+            card.className = 'status-card using';
+            card.innerHTML = `<div style="font-size: 80px; margin-bottom: -10px; z-index: 1;">🔥</div>
+                              <div class="status-title" style="font-size: 40px; margin: 15px 0;">In Use</div>
+                              <div class="status-subtitle" style="font-size: 16px;">${subject}<br>By: ${org}</div>`;
+        }
+    }
+
+    // --- Features ---
+    function simulateCheckinNFC() { showModal('success', 'Verified', 'Check-in completed.', () => nav('screen-status')); }
+    function verifyCheckinPIN() {
+        if(document.getElementById('checkin-pin-input').value === "1234") showModal('success', 'Verified', 'Check-in completed.', () => nav('screen-status'));
+        else showModal('error', 'Error', 'Invalid PIN.');
+    }
+
+    function simulateWalkinNFC() {
+        setTimeout(() => {
+            currentUser = "Nadech K.";
+            document.getElementById('verified-user-name').innerText = currentUser;
+            nav('screen-walkin-form');
+        }, 500);
+    }
+    
+    function submitWalkin() {
+        const subject = document.getElementById('walkin-subject').value || "Ad-hoc Meeting";
+        isAvailable = false;
+        updateRoomStatusUI(subject, currentUser);
+        showModal('success', 'Room Booked', 'Your meeting has started.', () => nav('screen-status'));
+    }
+
+    function simulateAdminNFC() { setTimeout(() => nav('screen-admin-dashboard'), 500); }
+    function verifyAdminPIN() {
+        if(document.getElementById('admin-pin-input').value === "9999") nav('screen-admin-dashboard');
+        else showModal('error', 'Denied', 'Invalid PIN.');
+    }
+
+    function searchEmployee() {
+        const empId = document.getElementById('search-emp-id').value;
+        const user = usersDB.find(u => u.id === empId);
+        if (user) {
+            currentEditingUserId = user.id;
+            document.getElementById('edit-emp-name').innerText = user.name;
+            document.getElementById('edit-emp-role').value = user.role;
+            document.getElementById('edit-emp-card').value = user.cardId;
+            document.getElementById('edit-emp-status').value = user.isActive ? "true" : "false";
+            
+            const badge = document.getElementById('edit-emp-status-badge');
+            badge.innerText = user.isActive ? "Active" : "Inactive"; 
+            badge.style.background = user.isActive ? "#43e97b" : "#ff0844";
+            document.getElementById('user-edit-form').style.display = "block";
+        } else {
+            showModal('error', 'Not Found', 'Employee ID not found.');
+        }
+    }
+    
+    function simulateAssignNewCard() {
+        setTimeout(() => { document.getElementById('edit-emp-card').value = "RFID-" + Math.floor(Math.random() * 90000); }, 300);
+    }
+    
+    function saveUserPermission() {
+        showModal('success', 'Saved', 'User updated.', () => {
+            document.getElementById('user-edit-form').style.display = "none";
+            document.getElementById('search-emp-id').value = "";
+        });
+    }
+    function closeUserForm() {
+        document.getElementById('user-edit-form').style.display = "none";
+        nav('screen-admin-dashboard');
+    }
+
+    // Refresh Timer Simulator
+    setInterval(() => {
+        refreshCountdown--;
+        if(refreshCountdown <= 0) refreshCountdown = 30;
+        document.getElementById('refresh-timer').innerText = `↻ ${refreshCountdown}s`;
+    }, 1000);
+
+    // Init
+    renderTimeline();
+</script>
+</body>
+</html>
